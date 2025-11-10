@@ -1,57 +1,109 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { useAuth } from '../../contexts/auth';
-import { useTranslation } from 'react-i18next';
+import {
+  ButtonEntrar,
+  ButtonEntrarText,
+  ButtonRegistrar,
+  ButtonRegistrarText,
+  Container,
+  ForgotPasswordButton,
+  ForgotPasswordText,
+  FormContainer,
+  Input,
+  InputContainer,
+  InputLabel,
+  Logo,
+  LogoContainer,
+  PasswordContainer,
+  PasswordInput,
+  PasswordToggle,
+  PasswordToggleText
+} from './styles';
 
 export default function SignIn() {
-  const { t } = useTranslation();
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
+  const router = useRouter();
+  const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSignIn() {
-    if (!email || !password) {
-      Alert.alert("Erro", "Por favor, preencha e-mail e senha.");
+    if (!cpf || !password) {
+      Alert.alert("Erro", "Por favor, preencha CPF e senha.");
       return;
     }
 
     setLoading(true);
-    const error = await signIn(email, password);
+    const error = await signIn(cpf, password);
     setLoading(false);
 
     if (error) {
       Alert.alert("Erro de Login", error);
     }
-    // Se não houver erro, o AuthContext irá redirecionar automaticamente.
+  }
+
+  function handleRegister() {
+    router.push('/(auth)/sign-up');
+  }
+
+  function handleForgotPassword() {
+    router.push('/(auth)/forgot-password');
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }}>{t('Bem-vindo')}</Text>
-      
-      <TextInput
-        placeholder="E-mail"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={{ borderWidth: 1, borderColor: 'gray', padding: 10, marginVertical: 10, borderRadius: 5 }}
-      />
+    <Container style={{ padding:20, paddingBottom:0}}>
+      <LogoContainer>
+        <Logo source={require('../../assets/images/icon.png')} resizeMode="contain" />
+      </LogoContainer>
 
-      <TextInput
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={{ borderWidth: 1, borderColor: 'gray', padding: 10, marginVertical: 10, borderRadius: 5 }}
-      />
+      <FormContainer>
+        <InputContainer>
+          <InputLabel>CPF</InputLabel>
+          <Input
+            placeholder="Somente números"
+            value={cpf}
+            onChangeText={setCpf}
+            keyboardType="numeric"
+            autoCapitalize="none"
+            editable={!loading}
+          />
+        </InputContainer>
 
-      <Button
-        title={loading ? "Carregando..." : t('Entrar')}
-        onPress={handleSignIn}
-        disabled={loading}
-      />
-    </View>
+        <InputContainer>
+          <InputLabel>Senha</InputLabel>
+          <PasswordContainer>
+            <PasswordInput
+              placeholder="********"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              editable={!loading}
+            />
+            <PasswordToggle onPress={() => setShowPassword(!showPassword)}>
+              <PasswordToggleText>{showPassword ? '👁️' : '👁️‍🗨️'}</PasswordToggleText>
+            </PasswordToggle>
+          </PasswordContainer>
+        </InputContainer>
+
+        <ButtonEntrar onPress={handleSignIn} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <ButtonEntrarText>ENTRAR</ButtonEntrarText>
+          )}
+        </ButtonEntrar>
+
+        <ButtonRegistrar onPress={handleRegister} disabled={loading}>
+          <ButtonRegistrarText>REGISTRAR</ButtonRegistrarText>
+        </ButtonRegistrar>
+
+        <ForgotPasswordButton onPress={handleForgotPassword} disabled={loading}>
+          <ForgotPasswordText>Esqueceu sua senha?</ForgotPasswordText>
+        </ForgotPasswordButton>
+      </FormContainer>
+    </Container>
   );
 }
